@@ -1,101 +1,79 @@
-const qrcode = require('qrcode-terminal');
+let QRCode = require('qrcode')
 const { Client, MessageMedia, List, Buttons, LocalAuth } = require('whatsapp-web.js');
-const express = require('express');
-const bodyParser = require('body-parser');
 const multer = require('multer');
 const request = require('request');
-const e = require('express');
-const dialogflow = require('@google-cloud/dialogflow');
-const uuid = require('uuid');
 const fs = require('fs');
 
-const client = new Client({
-    authStrategy: new LocalAuth(),
+let qr = ''
+
+const clientBlast = new Client({
+    authStrategy: new LocalAuth({ clientId: "client-blast" }),
     puppeteer: {headless: true, args: ['--no-sandbox', '--disable-setuid-sandbox']},
 });
 
-const app = express();
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
-const port = 5100;
-
-// dialog flow
-
-const projectId = process.env.PROJECT_ID || 'example' ;
-const sessionId = uuid.v4();
-
-const sessionClient = new dialogflow.SessionsClient({
-    keyFilename: process.env.PROJECT_KEY_FILE || 'example' 
-});
- 
-async function Chatting(inputText,phoneNumber) {
-const request = {
-    session: sessionClient.projectAgentSessionPath(
-        projectId,
-        phoneNumber
-    ),
-    queryInput: {
-      text: {
-        // The query to send to the dialogflow agent
-        text: inputText,
-        // The language used by the client (en-US)
-        languageCode: 'id-ID',
-      },
-    },
-  };
- 
-  // Send request and log result
-  const responses = await sessionClient.detectIntent(request);
-  const result = responses[0].queryResult;
-  if (result.intent) {
-    return result;
-  } else {
-    return "no intent";
-  }
-}
-
-const webhookCallback = process.env.WEBHOOK || 'example'
-
-/**
- * Start initiate bot
- * 
- * this bunch of function is to initialize the bot before running
-*/
-
-app.listen(port, () => {     
-    console.log(`Webhook target ${process.env.WEBHOOK}`);
-    console.log(`Now listening on port ${port}`); 
-});
-
-client.initialize();
-
-client.on('loading_screen', (percent, message) => {
-    console.log('wait a sec..', percent, message);
-});
-
-client.on('qr', qr => {
-    qrcode.generate(qr, {small: true});
-});
-
-client.on('ready', () => {
-    console.log('Client is ready!');
+app.post('/blast/connection', multer().any(), async (request, response) => {
+    connection = ''
+    clientBlast.getState().then((data) => { 
+        return response.status(200).json({ connection: data });
+    });
 });
 
 
-client.on('authenticated', () => {
-    console.log('AUTHENTICATED');
+app.get('/blast/destroy', multer().any(), async (request, response) => {
+    const dir = '.wwebjs_auth/session-client-blast'
+    await fs.rm(dir, { recursive: true, force: true }, err => {
+        if (err) {
+            throw err
+        }
+    
+        console.log(`${dir} is deleted!`)
+    })
+    io.emit('wa_blast_log', `${now} : Destroy`);
+    clientBlast.destroy();
+    clientBlast.initialize();
+    return response.status(200).send('Destroyed');
 });
 
-/**
- * END of initiate bot
-*/
+clientBlast.initialize();
+
+
+clientBlast.on('loading_screen', (percent, message) => {
+    io.emit("wa_blast_log", `${now} : Loading ${percent}% ${message}`);
+});
+
+clientBlast.on('qr', qr => {
+    QRCode.toString(qr,{type:'terminal'}, function (err, url) {
+        QRCode.toDataURL(qr, function (err, url) {
+            io.emit("wa_blast_qr", url);
+            io.emit('wa_blast_log', `QR Code received`);
+        })
+      })
+});
+
+clientBlast.on('ready', () => {
+    io.emit("wa_blast_log", `${now} : WhatsApp is ready!`);
+});
+
+clientBlast.on('authenticated', () => {
+    io.emit("wa_blast_log", `${now} : Whatsapp is authenticated!`);
+});
+
+clientBlast.on('auth_failure', function(session) {
+    io.emit('wa_blast_log', `${now} : Auth failure, restarting...`);
+});
+
+clientBlast.on('disconnected', function() {
+    clientBlast.destroy();
+    clientBlast.initialize();
+    return response.status(200).send('session destroyed');
+  });
 
 let download = function(uri, filename, callback){
     request.head(uri, function(err, res, body){
       request(uri).pipe(fs.createWriteStream(filename)).on('close', callback);
     });
+    return response.status(200).send('request received');
   };
-
 /**
  *  this function is used for sending
  *  you can use by hit endpoint `/send`
@@ -119,16 +97,16 @@ app.post('/send/media', multer().any(), async (request, response) => {
     }
     number = phoneNumber.includes('@c.us') ? phoneNumber : `${phoneNumber}@c.us`;
     // check for is number is registered
-    const registered =  await client.isRegisteredUser(number);
+    const registered =  await clientBlast.isRegisteredUser(number);
     if(!registered){
         return response.status(400).send('Invalid number');    
     }
     await download(attachmentUrl, attachmentName, function(){
     console.log('done');
-    });
     let attachment =  MessageMedia.fromFilePath(attachmentName);
-    await client.sendMessage(number, attachment,{caption:message});
+    clientBlast.sendMessage(number, attachment,{caption:message});
     return response.status(200).send('message sended');
+    });
 });
 
 /**
@@ -152,14 +130,13 @@ app.post('/send/message', multer().any(), async (request, response) => {
     }
     number = phoneNumber.includes('@c.us') ? phoneNumber : `${phoneNumber}@c.us`;
     // check for is number is registered
-    const registered =  await client.isRegisteredUser(number);
+    const registered =  await clientBlast.isRegisteredUser(number);
     if(!registered){
         return response.status(400).send('Invalid number');    
     }
-    await client.sendMessage(number, message);
+    await clientBlast.sendMessage(number, message);
     return response.status(200).send('message sended');
 });
-
 
 /**
  *  this function is used for sending
@@ -185,7 +162,7 @@ app.post('/send/button', multer().any(), async (request, response) => {
     }
     number = phoneNumber.includes('@c.us') ? phoneNumber : `${phoneNumber}@c.us`;
     // check for is number is registered
-    const registered =  await client.isRegisteredUser(number);
+    const registered =  await clientBlast.isRegisteredUser(number);
     if(!registered){
         return response.status(400).send('Invalid number');    
     }
@@ -193,7 +170,7 @@ app.post('/send/button', multer().any(), async (request, response) => {
     const buttons_reply = new Buttons(message, buttons, title, footer)
     
     // send to number
-    for (const component of [buttons_reply]) await client.sendMessage(number, component);
+    for (const component of [buttons_reply]) await clientBlast.sendMessage(number, component);
 
     return response.status(200).send('message sended');
 });
@@ -224,7 +201,7 @@ app.post('/send/list', multer().any(), async (request, response) => {
     }
     number = phoneNumber.includes('@c.us') ? phoneNumber : `${phoneNumber}@c.us`;
     // check for is number is registered
-    const registered =  await client.isRegisteredUser(number);
+    const registered =  await clientBlast.isRegisteredUser(number);
     if(!registered){
         return response.status(400).send('Invalid number');    
     }
@@ -235,43 +212,8 @@ app.post('/send/list', multer().any(), async (request, response) => {
     };
 
     const list = new List(message, cta, [section], title, footer)
-    await client.sendMessage(number, list);
+    await clientBlast.sendMessage(number, list);
     return response.status(200).send('message sended');
 });
 
-app.post('/send/dialogflow', multer().any(), async (request, response) => {
-    return response.status(200).send(await Chatting(msg.body,msg.from));
-});
 
-
-client.on('message', async msg => {
-    if (msg.type != "chat" && msg.type != "list_response" && msg.type != "buttons_response") {
-        msg["body"] = "user send "+msg.type;
-    }
-
-    let chat = await Chatting(msg.body,msg.from);
-    if (chat == 'no intent') {
-        console.log('no intent');
-        msg["isDialogFlow"] = false;
-    }else{
-        console.log('intent');
-        msg["isDialogFlow"] = true;
-        msg["dialogFlowChat"] = chat;
-    }
-    let clientServerOptions = {
-        uri: webhookCallback,
-        body: JSON.stringify(msg),
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        }
-    }
-    request(clientServerOptions, function (error, response) {
-        if (!error && (response && response.statusCode) === 200) {
-            console.log("success");
-            return 200;
-        }else{
-            return 500;
-        }
-    });
-});
