@@ -41,11 +41,6 @@ app.get('/bot/destroy', multer().any(), async (request, response) => {
 client.initialize();
 
 client.on('loading_screen', (percent, message) => {
-    console.log('wait a sec..', percent, message);
-});
-
-
-client.on('loading_screen', (percent, message) => {
     io.emit("wa_bot_log", `${now} : Loading ${percent}% ${message}`);
 });
 
