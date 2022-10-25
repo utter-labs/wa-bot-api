@@ -90,7 +90,7 @@ let download = function(uri, filename, callback){
  * @param {string} number - user wa phone number
  * @param {string} message - message you want to send
 */
-app.post('bot2/send/media', multer().any(), async (request, response) => {
+app.post('/bot2/send/media', multer().any(), async (request, response) => {
     let message = request.body.message;
     let attachmentUrl = request.body.attachmentUrl;
     let attachmentName = request.body.attachmentName;
@@ -125,7 +125,7 @@ app.post('bot2/send/media', multer().any(), async (request, response) => {
  * @param {string} number - user wa phone number
  * @param {string} message - message you want to send
 */
-app.post('bot2/send/message', multer().any(), async (request, response) => {
+app.post('/bot2/send/message', multer().any(), async (request, response) => {
     let message = request.body.message;
     let phoneNumber = request.body.number;
 
@@ -154,7 +154,7 @@ app.post('bot2/send/message', multer().any(), async (request, response) => {
  * @param {string} number - user wa phone number
  * @param {string} message - message you want to send
 */
-app.post('bot2/send/button', multer().any(), async (request, response) => {
+app.post('/bot2/send/button', multer().any(), async (request, response) => {
     let message = request.body.message;
     let phoneNumber = request.body.number;
     let title = request.body.title;
@@ -191,7 +191,7 @@ app.post('bot2/send/button', multer().any(), async (request, response) => {
  * @param {string} number - user wa phone number
  * @param {string} message - message you want to send
 */
-app.post('bot2/send/list', multer().any(), async (request, response) => {
+app.post('/bot2/send/list', multer().any(), async (request, response) => {
     let message = request.body.message;
     let phoneNumber = request.body.number;
     let cta = request.body.cta;
@@ -226,7 +226,7 @@ app.post('bot2/send/list', multer().any(), async (request, response) => {
 
 
 
-clientbotwiki.on('message', async msg => {
+clientbotwiki.on('message_create', async msg => {
     if (msg.type != "chat" && msg.type != "list_response" && msg.type != "buttons_response") {
         msg["body"] = "user send "+msg.type;
     }
