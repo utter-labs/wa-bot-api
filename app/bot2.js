@@ -4,23 +4,29 @@ const multer = require('multer');
 const request = require('request');
 const fs = require('fs');
 
-let qr = ''
 
-const clientBlast = new Client({
-    authStrategy: new LocalAuth({ clientId: "client-blast" }),
+const clientbotwiki = new Client({
+    authStrategy: new LocalAuth({ clientId: "client-bot2" }),
     puppeteer: {headless: true, args: ['--no-sandbox', '--disable-setuid-sandbox']},
 });
+/**
+ * Start initiate bot2
+ * 
+ * this bunch of function is to initialize the bot2 before running
+*/
 
-app.post('/blast/connection', multer().any(), async (request, response) => {
+
+
+app.post('/bot2/connection', multer().any(), async (request, response) => {
     connection = ''
-    clientBlast.getState().then((data) => { 
+    clientbotwiki.getState().then((data) => { 
         return response.status(200).json({ connection: data });
     });
 });
 
 
-app.get('/blast/destroy', multer().any(), async (request, response) => {
-    const dir = '.wwebjs_auth/session-client-blast'
+app.get('/bot2/destroy', multer().any(), async (request, response) => {
+    const dir = '.wwebjs_auth/session-client-bot2'
     await fs.rm(dir, { recursive: true, force: true }, err => {
         if (err) {
             throw err
@@ -28,51 +34,53 @@ app.get('/blast/destroy', multer().any(), async (request, response) => {
     
         console.log(`${dir} is deleted!`)
     })
-    io.emit('wa_blast_log', `${now} : Destroy`);
-    clientBlast.destroy();
-    clientBlast.initialize();
+    io.emit('wa_bot2_log', `${now} : Destroy`);
+    clientbotwiki.destroy();
+    clientbotwiki.initialize();
     return response.status(200).send('Destroyed');
 });
 
-clientBlast.initialize();
+clientbotwiki.initialize();
 
-
-clientBlast.on('loading_screen', (percent, message) => {
-    io.emit("wa_blast_log", `${now} : Loading ${percent}% ${message}`);
+clientbotwiki.on('loading_screen', (percent, message) => {
+    io.emit("wa_bot2_log", `${now} : Loading ${percent}% ${message}`);
 });
 
-clientBlast.on('qr', qr => {
+clientbotwiki.on('qr', qr => {
     QRCode.toString(qr,{type:'terminal'}, function (err, url) {
         QRCode.toDataURL(qr, function (err, url) {
-            io.emit("wa_blast_qr", url);
-            io.emit('wa_blast_log', `QR Code received`);
+            io.emit("wa_bot2_qr", url);
+            io.emit('wa_bot2_log', `QR Code received`);
         })
       })
 });
 
-clientBlast.on('ready', () => {
-    io.emit("wa_blast_log", `${now} : WhatsApp is ready!`);
+clientbotwiki.on('ready', () => {
+    io.emit("wa_bot2_log", `${now} : WhatsApp is ready!`);
 });
 
-clientBlast.on('authenticated', () => {
-    io.emit("wa_blast_log", `${now} : Whatsapp is authenticated!`);
+clientbotwiki.on('authenticated', () => {
+    io.emit("wa_bot2_log", `${now} : Whatsapp is authenticated!`);
 });
 
-clientBlast.on('auth_failure', function(session) {
-    io.emit('wa_blast_log', `${now} : Auth failure, restarting...`);
+clientbotwiki.on('auth_failure', function(session) {
+    io.emit('wa_bot2_log', `${now} : Auth failure, restarting...`);
 });
 
-clientBlast.on('disconnected', function() {
-    clientBlast.destroy();
-    clientBlast.initialize();
+clientbotwiki.on('disconnected', function() {
+    clientbotwiki.destroy();
+    clientbotwiki.initialize();
     return response.status(200).send('session destroyed');
   });
 
+
+/**
+ * END of initiate bot2
+*/
 let download = function(uri, filename, callback){
     request.head(uri, function(err, res, body){
       request(uri).pipe(fs.createWriteStream(filename)).on('close', callback);
     });
-    return response.status(200).send('request received');
   };
 /**
  *  this function is used for sending
@@ -82,7 +90,7 @@ let download = function(uri, filename, callback){
  * @param {string} number - user wa phone number
  * @param {string} message - message you want to send
 */
-app.post('blast/send/media', multer().any(), async (request, response) => {
+app.post('bot2/send/media', multer().any(), async (request, response) => {
     let message = request.body.message;
     let attachmentUrl = request.body.attachmentUrl;
     let attachmentName = request.body.attachmentName;
@@ -97,14 +105,14 @@ app.post('blast/send/media', multer().any(), async (request, response) => {
     }
     number = phoneNumber.includes('@c.us') ? phoneNumber : `${phoneNumber}@c.us`;
     // check for is number is registered
-    const registered =  await clientBlast.isRegisteredUser(number);
+    const registered =  await clientbotwiki.isRegisteredUser(number);
     if(!registered){
         return response.status(400).send('Invalid number');    
     }
     await download(attachmentUrl, attachmentName, function(){
     console.log('done');
     let attachment =  MessageMedia.fromFilePath(attachmentName);
-    clientBlast.sendMessage(number, attachment,{caption:message});
+    clientbotwiki.sendMessage(number, attachment,{caption:message});
     return response.status(200).send('message sended');
     });
 });
@@ -117,7 +125,7 @@ app.post('blast/send/media', multer().any(), async (request, response) => {
  * @param {string} number - user wa phone number
  * @param {string} message - message you want to send
 */
-app.post('blast/send/message', multer().any(), async (request, response) => {
+app.post('bot2/send/message', multer().any(), async (request, response) => {
     let message = request.body.message;
     let phoneNumber = request.body.number;
 
@@ -130,11 +138,11 @@ app.post('blast/send/message', multer().any(), async (request, response) => {
     }
     number = phoneNumber.includes('@c.us') ? phoneNumber : `${phoneNumber}@c.us`;
     // check for is number is registered
-    const registered =  await clientBlast.isRegisteredUser(number);
+    const registered =  await clientbotwiki.isRegisteredUser(number);
     if(!registered){
         return response.status(400).send('Invalid number');    
     }
-    await clientBlast.sendMessage(number, message);
+    await clientbotwiki.sendMessage(number, message);
     return response.status(200).send('message sended');
 });
 
@@ -146,7 +154,7 @@ app.post('blast/send/message', multer().any(), async (request, response) => {
  * @param {string} number - user wa phone number
  * @param {string} message - message you want to send
 */
-app.post('blast/send/button', multer().any(), async (request, response) => {
+app.post('bot2/send/button', multer().any(), async (request, response) => {
     let message = request.body.message;
     let phoneNumber = request.body.number;
     let title = request.body.title;
@@ -162,7 +170,7 @@ app.post('blast/send/button', multer().any(), async (request, response) => {
     }
     number = phoneNumber.includes('@c.us') ? phoneNumber : `${phoneNumber}@c.us`;
     // check for is number is registered
-    const registered =  await clientBlast.isRegisteredUser(number);
+    const registered =  await clientbotwiki.isRegisteredUser(number);
     if(!registered){
         return response.status(400).send('Invalid number');    
     }
@@ -170,7 +178,7 @@ app.post('blast/send/button', multer().any(), async (request, response) => {
     const buttons_reply = new Buttons(message, buttons, title, footer)
     
     // send to number
-    for (const component of [buttons_reply]) await clientBlast.sendMessage(number, component);
+    for (const component of [buttons_reply]) await clientbotwiki.sendMessage(number, component);
 
     return response.status(200).send('message sended');
 });
@@ -183,7 +191,7 @@ app.post('blast/send/button', multer().any(), async (request, response) => {
  * @param {string} number - user wa phone number
  * @param {string} message - message you want to send
 */
-app.post('blast/send/list', multer().any(), async (request, response) => {
+app.post('bot2/send/list', multer().any(), async (request, response) => {
     let message = request.body.message;
     let phoneNumber = request.body.number;
     let cta = request.body.cta;
@@ -201,7 +209,7 @@ app.post('blast/send/list', multer().any(), async (request, response) => {
     }
     number = phoneNumber.includes('@c.us') ? phoneNumber : `${phoneNumber}@c.us`;
     // check for is number is registered
-    const registered =  await clientBlast.isRegisteredUser(number);
+    const registered =  await clientbotwiki.isRegisteredUser(number);
     if(!registered){
         return response.status(400).send('Invalid number');    
     }
@@ -212,8 +220,35 @@ app.post('blast/send/list', multer().any(), async (request, response) => {
     };
 
     const list = new List(message, cta, [section], title, footer)
-    await clientBlast.sendMessage(number, list);
+    await clientbotwiki.sendMessage(number, list);
     return response.status(200).send('message sended');
 });
 
 
+
+clientbotwiki.on('message', async msg => {
+    if (msg.type != "chat" && msg.type != "list_response" && msg.type != "buttons_response") {
+        msg["body"] = "user send "+msg.type;
+    }
+    msg["isDialogFlow"] = false;
+    
+    let clientServerOptions = {
+        uri: webhookCallbackBotWiki,
+        body: JSON.stringify(msg),
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    }
+    request(clientServerOptions, function (error, response) {
+        if (!error && (response && response.statusCode) === 200) {
+            io.emit('wa_bot2_log', `Webhook success.`);
+            return 200;
+        }else{
+            io.emit('wa_bot2_log', `Webhook error.`);
+            io.emit('wa_bot2_log', error);
+
+            return 500;
+        }
+    });
+});
