@@ -234,15 +234,15 @@ client.on('message', async msg => {
 
     let chat = await Chatting(msg.body,msg.from);
     if (chat == 'no intent') {
-        console.log('no intent');
+        io.emit('wa_bot_log', `chat received, no intent detected!`);
         msg["isDialogFlow"] = false;
     }else{
-        console.log('intent');
+        io.emit('wa_bot_log', `chat received, intent detected!`);
         msg["isDialogFlow"] = true;
         msg["dialogFlowChat"] = chat;
     }
     let clientServerOptions = {
-        uri: webhookCallback,
+        uri: webhookCallbackBotCS,
         body: JSON.stringify(msg),
         method: 'POST',
         headers: {
@@ -251,7 +251,7 @@ client.on('message', async msg => {
     }
     request(clientServerOptions, function (error, response) {
         if (!error && (response && response.statusCode) === 200) {
-            console.log("success");
+            io.emit('wa_bot_log', `Webhook success.`);
             return 200;
         }else{
             return 500;
