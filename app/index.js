@@ -38,7 +38,7 @@ let today  = new Date();
 let now = today.toLocaleString();
 
 eval(fs.readFileSync('app/dialogflow.js')+'');
-// eval(fs.readFileSync('app/bot.js')+'');
+eval(fs.readFileSync('app/bot.js')+'');
 eval(fs.readFileSync('app/bot2.js')+'');
 // eval(fs.readFileSync('app/blast.js')+'');
 
