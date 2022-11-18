@@ -23,7 +23,7 @@ USER root
 WORKDIR /app
 COPY package.json /app
 RUN npm install
-
+RUN npm install pm2 -g
 COPY . /app
 CMD ["env","NODE_ENV=production"]
-CMD ["node", "index.js"]
+CMD ["pm2-runtime", "app/index.js"]

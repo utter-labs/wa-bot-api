@@ -10,7 +10,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 const port = 5100;
 const webhookCallbackBotCS = process.env.WEBHOOK || 'https://n8.utter.academy/webhook/4dbbb47a-4ff3-482a-809b-e3504532d01f'
-const webhookCallbackBotWiki = process.env.WEBHOOK || 'https://n8.utter.academy/webhook-test/11b22a06-d5e9-4acb-932b-1beae59b834e'
+const webhookCallbackBotWiki = process.env.WEBHOOK || 'https://n8.utter.academy/webhook/11b22a06-d5e9-4acb-932b-1beae59b834e'
 const baseUrl = process.env.BASE_URL || 'http://127.0.0.1:5100'
 // socket
 const server = require("http").createServer(app);
