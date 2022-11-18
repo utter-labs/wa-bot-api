@@ -2,7 +2,7 @@
 
 echo "build on progress"
 
-docker build -q -t wa-api .
+docker build -t wa-api .
 
 if [ $? -eq 0 ]; then
    echo OK, build success

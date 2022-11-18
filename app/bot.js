@@ -98,9 +98,7 @@ app.post('/send/media', multer().any(), async (request, response) => {
         return response.status(200).send('brodcast received');
     }
     // check for number in request
-    if (!phoneNumber) {
-        return response.status(400).send('Number not found');
-    }
+      
     number = phoneNumber.includes('@c.us') ? phoneNumber : `${phoneNumber}@c.us`;
     // check for is number is registered
     const registered =  await client.isRegisteredUser(number);
@@ -113,6 +111,18 @@ app.post('/send/media', multer().any(), async (request, response) => {
     client.sendMessage(number, attachment,{caption:message});
     return response.status(200).send('message sended');
     });
+});
+
+
+app.post('/get-contact-info', multer().any(), async (request, response) => {
+    let phoneNumber = request.body.number;
+    number = phoneNumber.includes('@c.us') ? phoneNumber : `${phoneNumber}@c.us`;
+    // check for is number is registered
+    const registered =  await client.isRegisteredUser(number);
+    const getNumberId =  await client.getContactById(number);
+
+
+    return response.status(200).send(getNumberId);
 });
 
 /**
@@ -131,9 +141,7 @@ app.post('/send/message', multer().any(), async (request, response) => {
         return response.status(200).send('brodcast received');
     }
     // check for number in request
-    if (!phoneNumber) {
-        return response.status(400).send('Number not found');
-    }
+      
     number = phoneNumber.includes('@c.us') ? phoneNumber : `${phoneNumber}@c.us`;
     // check for is number is registered
     const registered =  await client.isRegisteredUser(number);
@@ -163,9 +171,7 @@ app.post('/send/button', multer().any(), async (request, response) => {
         return response.status(200).send('brodcast received');
     }
     // check for number in request
-    if (!phoneNumber) {
-        return response.status(400).send('Number not found');
-    }
+      
     number = phoneNumber.includes('@c.us') ? phoneNumber : `${phoneNumber}@c.us`;
     // check for is number is registered
     const registered =  await client.isRegisteredUser(number);
@@ -202,9 +208,7 @@ app.post('/send/list', multer().any(), async (request, response) => {
         return response.status(200).send('brodcast received');
     }
     // check for number in request
-    if (!phoneNumber) {
-        return response.status(400).send('Number not found');
-    }
+      
     number = phoneNumber.includes('@c.us') ? phoneNumber : `${phoneNumber}@c.us`;
     // check for is number is registered
     const registered =  await client.isRegisteredUser(number);

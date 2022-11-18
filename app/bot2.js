@@ -100,15 +100,11 @@ app.post('/bot2/send/media', multer().any(), async (request, response) => {
         return response.status(200).send('brodcast received');
     }
     // check for number in request
-    if (!phoneNumber) {
-        return response.status(400).send('Number not found');
-    }
+       
     number = phoneNumber.includes('@c.us') ? phoneNumber : `${phoneNumber}@c.us`;
     // check for is number is registered
     const registered =  await clientbotwiki.isRegisteredUser(number);
-    if(!registered){
-        return response.status(400).send('Invalid number');    
-    }
+     
     await download(attachmentUrl, attachmentName, function(){
     console.log('done');
     let attachment =  MessageMedia.fromFilePath(attachmentName);
@@ -133,15 +129,11 @@ app.post('/bot2/send/message', multer().any(), async (request, response) => {
         return response.status(200).send('brodcast received');
     }
     // check for number in request
-    if (!phoneNumber) {
-        return response.status(400).send('Number not found');
-    }
+       
     number = phoneNumber.includes('@c.us') ? phoneNumber : `${phoneNumber}@c.us`;
     // check for is number is registered
     const registered =  await clientbotwiki.isRegisteredUser(number);
-    if(!registered){
-        return response.status(400).send('Invalid number');    
-    }
+     
     await clientbotwiki.sendMessage(number, message);
     return response.status(200).send('message sended');
 });
@@ -165,15 +157,11 @@ app.post('/bot2/send/button', multer().any(), async (request, response) => {
         return response.status(200).send('brodcast received');
     }
     // check for number in request
-    if (!phoneNumber) {
-        return response.status(400).send('Number not found');
-    }
+       
     number = phoneNumber.includes('@c.us') ? phoneNumber : `${phoneNumber}@c.us`;
     // check for is number is registered
     const registered =  await clientbotwiki.isRegisteredUser(number);
-    if(!registered){
-        return response.status(400).send('Invalid number');    
-    }
+     
     
     const buttons_reply = new Buttons(message, buttons, title, footer)
     
@@ -204,15 +192,11 @@ app.post('/bot2/send/list', multer().any(), async (request, response) => {
         return response.status(200).send('brodcast received');
     }
     // check for number in request
-    if (!phoneNumber) {
-        return response.status(400).send('Number not found');
-    }
+       
     number = phoneNumber.includes('@c.us') ? phoneNumber : `${phoneNumber}@c.us`;
     // check for is number is registered
     const registered =  await clientbotwiki.isRegisteredUser(number);
-    if(!registered){
-        return response.status(400).send('Invalid number');    
-    }
+     
 
     const section = {
     title: title,
@@ -226,7 +210,7 @@ app.post('/bot2/send/list', multer().any(), async (request, response) => {
 
 
 
-clientbotwiki.on('message_create', async msg => {
+clientbotwiki.on('message', async msg => {
     if (msg.type != "chat" && msg.type != "list_response" && msg.type != "buttons_response") {
         msg["body"] = "user send "+msg.type;
     }
@@ -245,6 +229,7 @@ clientbotwiki.on('message_create', async msg => {
             io.emit('wa_bot2_log', `Webhook success.`);
             return 200;
         }else{
+            console.log(error);
             io.emit('wa_bot2_log', `Webhook error.`);
             io.emit('wa_bot2_log', error);
 
