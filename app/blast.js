@@ -3,7 +3,7 @@ const { Client, MessageMedia, List, Buttons, LocalAuth } = require('whatsapp-web
 const multer = require('multer');
 const request = require('request');
 const fs = require('fs');
-
+const path = require('path');
 let qr = ''
 
 const clientBlast = new Client({
@@ -11,15 +11,20 @@ const clientBlast = new Client({
     puppeteer: {headless: true, args: ['--no-sandbox', '--disable-setuid-sandbox']},
 });
 
-app.post('/blast/connection', multer().any(), async (request, response) => {
+app.get('/log', multer().any(), async (request, response) => {
+    return response.sendFile(path.join(__dirname, 'src/qr.html'));
+});
+
+
+app.post('/connection', multer().any(), async (request, response) => {
     connection = ''
-    clientBlast.getState().then((data) => { 
+    clientBlast.getState().then((data) => {
         return response.status(200).json({ connection: data });
     });
 });
 
 
-app.get('/blast/destroy', multer().any(), async (request, response) => {
+app.get('/destroy', multer().any(), async (request, response) => {
     const dir = '.wwebjs_auth/session-client-blast'
     await fs.rm(dir, { recursive: true, force: true }, err => {
         if (err) {
@@ -82,7 +87,7 @@ let download = function(uri, filename, callback){
  * @param {string} number - user wa phone number
  * @param {string} message - message you want to send
 */
-app.post('blast/send/media', multer().any(), async (request, response) => {
+app.post('/send/media', multer().any(), async (request, response) => {
     let message = request.body.message;
     let attachmentUrl = request.body.attachmentUrl;
     let attachmentName = request.body.attachmentName;
@@ -117,7 +122,7 @@ app.post('blast/send/media', multer().any(), async (request, response) => {
  * @param {string} number - user wa phone number
  * @param {string} message - message you want to send
 */
-app.post('blast/send/message', multer().any(), async (request, response) => {
+app.post('/send/message', multer().any(), async (request, response) => {
     let message = request.body.message;
     let phoneNumber = request.body.number;
 
@@ -146,7 +151,7 @@ app.post('blast/send/message', multer().any(), async (request, response) => {
  * @param {string} number - user wa phone number
  * @param {string} message - message you want to send
 */
-app.post('blast/send/button', multer().any(), async (request, response) => {
+app.post('/send/button', multer().any(), async (request, response) => {
     let message = request.body.message;
     let phoneNumber = request.body.number;
     let title = request.body.title;
@@ -183,7 +188,7 @@ app.post('blast/send/button', multer().any(), async (request, response) => {
  * @param {string} number - user wa phone number
  * @param {string} message - message you want to send
 */
-app.post('blast/send/list', multer().any(), async (request, response) => {
+app.post('/send/list', multer().any(), async (request, response) => {
     let message = request.body.message;
     let phoneNumber = request.body.number;
     let cta = request.body.cta;

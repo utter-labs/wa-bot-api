@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8">
+      <title>wa log Site</title>
+      <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+      <style>
+        body { padding-top: 50px; }
+      </style>
+    </head>
+    <body>
+    
+      <div class="container">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between">
+               <div class="header-title">
+                     <h4 class="card-title">Wa Log</h4>
+               </div>
+            </div>
+            <div class="card-body">
+            <img id="qr" class="center" alt="qr code" style="display: none ;" src="http://127.0.0.1:5100/default.gif"></img>
+            <div id="logs"></div>
+            </div>
+      </div>
+      </div>
+    
+      <script src="https://code.jquery.com/jquery-3.6.1.min.js" integrity="sha256-o88AwQnZB+VDvE9tvIXrMQaPlFFSUTR+nldQm1LuPXQ=" crossorigin="anonymous"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/3.0.1/socket.io.min.js" integrity="sha512-gVG6WRMUYFaIdoocaxbqd02p3DUbhReTBWc7NTGB96i7vONrr7GuCZJHFFmkXEhpwilIWUnfRIMSlKaApwd/jg==" crossorigin="anonymous"></script>
+            <script>
+            $.ajax(window.location.href+'/connection', {
+                type: 'POST',  // http method
+                contentType: 'application/json',
+                crossDomain: true,
+                success: function (data, status, xhr) {
+                    // $('p').append('status: ' + status + ', data: ' + data);
+                    console.log(data['connection']);
+                    if (data['connection'] == "CONNECTED") {
+                    $('#log').css("display", "none");
+                    }
+                },
+                error: function (jqXhr, textStatus, errorMessage) {
+                    console.log(errorMessage);
+
+                }
+            });
+
+            const socket = io('127.0.0.1:5100');
+            console.log(socket);
+            socket.on("wa_blast_qr", (data) => {
+                console.log(data);
+                document.getElementById("qr").src = data;
+            });
+            var logsEl = $("#logs");
+            socket.on("wa_blast_log", (data) => {
+                if (data.includes("QR")) {
+                $('#qr').removeAttr("style")
+                }
+                if (data.includes("WhatsApp is ready!")) {
+                $('#qr').css("display", "none");
+                }
+                console.log(data);
+                logsEl.prepend($('<p>').text(data));
+            });
+            </script>
+    </body>
+</html>

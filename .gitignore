@@ -1,6 +1,5 @@
 node_modules
 .wwebjs_auth
-env.list
 lol.js
 *.json
 package-lock.json
