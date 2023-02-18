@@ -6,24 +6,90 @@
       <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
       <style>
         body { padding-top: 50px; }
+
+        .logs-list ul {
+          list-style: none;
+          padding: 0;
+        }
+        
+        .logs-list li {
+          padding: 10px 0;
+          border-bottom: 1px solid #ccc;
+          display: flex;
+          align-items: center;
+        }
+        
+        .log-timestamp {
+          margin-right: 10px;
+          font-size: 14px;
+          font-weight: bold;
+        }
+        
+        .log-level {
+          padding: 2px 6px;
+          margin-right: 10px;
+          color: #fff;
+          border-radius: 4px;
+          font-size: 12px;
+          text-transform: uppercase;
+        }
+        
+        .log-level.info {
+          background-color: #007bff!important;
+        }
+        
+        .log-level.error {
+          background-color: red;
+        }
+        
+        .log-level.warn {
+          background-color: orange;
+        }
+        
+        .log-source {
+          margin-right: 10px;
+          font-size: 14px;
+          font-weight: bold;
+        }
+        
+        .log-message {
+          font-size: 14px;
+        }
+
       </style>
     </head>
     <body>
-    
-      <div class="container">
-        <div class="card">
-            <div class="card-header d-flex justify-content-between">
-               <div class="header-title">
-                     <h4 class="card-title">Wa Log</h4>
-               </div>
+
+      <div class="row">
+        <div class="col-md-3">
+          <div class="container">
+            <div class="card">
+                  <div class="card-header d-flex justify-content-between">
+                    <div class="header-title">
+                          <h4 class="card-title">QR Code</h4>
+                    </div>
+                  </div>
+                  <div class="card-body">
+                  <img id="qr" class="center" alt="qr code" src="http://127.0.0.1:5100/default.gif"></img>
+                  </div>
             </div>
-            <div class="card-body">
-            <img id="qr" class="center" alt="qr code" style="display: none ;" src="http://127.0.0.1:5100/default.gif"></img>
-            <div id="logs"></div>
+          </div>
+        </div>
+        <div class="col-md-9">
+          <div class="container">
+            <div class="card">
+                  <div class="card-header d-flex justify-content-between">
+                    <div class="header-title">
+                          <h4 class="card-title">Logs</h4>
+                    </div>
+                  </div>
+                  <div class="card-body">
+                  <div id="logs"></div>
+                  </div>
             </div>
+          </div>
+        </div>
       </div>
-      </div>
-    
       <script src="https://code.jquery.com/jquery-3.6.1.min.js" integrity="sha256-o88AwQnZB+VDvE9tvIXrMQaPlFFSUTR+nldQm1LuPXQ=" crossorigin="anonymous"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/3.0.1/socket.io.min.js" integrity="sha512-gVG6WRMUYFaIdoocaxbqd02p3DUbhReTBWc7NTGB96i7vONrr7GuCZJHFFmkXEhpwilIWUnfRIMSlKaApwd/jg==" crossorigin="anonymous"></script>
             <script>
@@ -40,26 +106,29 @@
                 },
                 error: function (jqXhr, textStatus, errorMessage) {
                     console.log(errorMessage);
-
                 }
             });
 
             const socket = io('127.0.0.1:5100');
-            console.log(socket);
-            socket.on("wa_blast_qr", (data) => {
-                console.log(data);
-                document.getElementById("qr").src = data;
-            });
             var logsEl = $("#logs");
-            socket.on("wa_blast_log", (data) => {
-                if (data.includes("QR")) {
-                $('#qr').removeAttr("style")
-                }
-                if (data.includes("WhatsApp is ready!")) {
-                $('#qr').css("display", "none");
-                }
-                console.log(data);
-                logsEl.prepend($('<p>').text(data));
+            socket.on('log', logs => {
+              logsEl.html('');
+
+              logs.forEach(log => {
+                const { timestamp, level, group, message } = log;
+                console.log(`${timestamp} | ${level} | ${group} | ${message}`);
+                logsEl.append($('<div>').html(`
+                  <div class="card border-primary mb-3">
+                    <div class="card-body p-2">
+                      <p class="card-text"><span class="log-level ${level.toLowerCase()}">${level}</span>(<span class="log-group">${group}</span>) <b>${message}</b> at <span class="log-timestamp">${timestamp}</span></p>
+                    </div>
+                  </div>
+                `));
+                // update the UI with the log data
+              });
+            });
+            socket.on("wa_blast_qr", (data) => {
+                document.getElementById("qr").src = data;
             });
             </script>
     </body>
