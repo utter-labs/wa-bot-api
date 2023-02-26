@@ -61,7 +61,7 @@ io.on("connection", (socket) => {
   logger.info("WEB SOCKET CONNECTION | New client web socket connected " + socket.id);
   console.log(socket.id);
   fs.readFile('qrCode.txt', 'utf8', function (err, data) {
-    if (err) logger.error("QR CODE | Error read local QA code " + err);
+    if (err) logger.error("QR CODE | Error read local QR Code " + err);
     // Send QR Code to client
     io.emit("wa_blast_qr", data);
   });
