@@ -93,6 +93,8 @@
       <script src="https://code.jquery.com/jquery-3.6.1.min.js" integrity="sha256-o88AwQnZB+VDvE9tvIXrMQaPlFFSUTR+nldQm1LuPXQ=" crossorigin="anonymous"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/3.0.1/socket.io.min.js" integrity="sha512-gVG6WRMUYFaIdoocaxbqd02p3DUbhReTBWc7NTGB96i7vONrr7GuCZJHFFmkXEhpwilIWUnfRIMSlKaApwd/jg==" crossorigin="anonymous"></script>
             <script>
+              document.getElementById("qr").src = window.location.href;
+
             $.ajax(window.location.href+'/connection', {
                 type: 'POST',  // http method
                 contentType: 'application/json',
@@ -109,7 +111,7 @@
                 }
             });
 
-            const socket = io('127.0.0.1:5100');
+            const socket = io(window.location.href+':5100');
             var logsEl = $("#logs");
             socket.on('log', logs => {
               logsEl.html('');
