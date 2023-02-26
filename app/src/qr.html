@@ -70,7 +70,7 @@
                     </div>
                   </div>
                   <div class="card-body">
-                  <img id="qr" class="center" alt="qr code" src="http://127.0.0.1:5100/default.gif"></img>
+                  <img id="qr" class="center" alt="qr code" src=""></img>
                   </div>
             </div>
           </div>
@@ -93,9 +93,9 @@
       <script src="https://code.jquery.com/jquery-3.6.1.min.js" integrity="sha256-o88AwQnZB+VDvE9tvIXrMQaPlFFSUTR+nldQm1LuPXQ=" crossorigin="anonymous"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/3.0.1/socket.io.min.js" integrity="sha512-gVG6WRMUYFaIdoocaxbqd02p3DUbhReTBWc7NTGB96i7vONrr7GuCZJHFFmkXEhpwilIWUnfRIMSlKaApwd/jg==" crossorigin="anonymous"></script>
             <script>
-              document.getElementById("qr").src = window.location.href;
+              document.getElementById("qr").src = "/default.gif";
 
-            $.ajax(window.location.href+'/connection', {
+            $.ajax('/connection', {
                 type: 'POST',  // http method
                 contentType: 'application/json',
                 crossDomain: true,
@@ -111,7 +111,7 @@
                 }
             });
 
-            const socket = io(window.location.href+':5100');
+            const socket = io(window.location.host);
             var logsEl = $("#logs");
             socket.on('log', logs => {
               logsEl.html('');
